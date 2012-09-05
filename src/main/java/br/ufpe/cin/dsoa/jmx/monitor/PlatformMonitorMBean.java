@@ -7,11 +7,11 @@ public interface PlatformMonitorMBean {
 	public void startMonitoring();
 
 	public void stopMonitoring();
-	
+
 	public void setInterval(long interval);
-	
+
 	public long getInterval();
-	
+
 	public Map<String, Object> getStatus();
 
 }

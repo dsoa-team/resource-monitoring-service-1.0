@@ -155,7 +155,7 @@ public class PlatformMonitor extends NotificationBroadcasterSupport implements
 
 		return percentPhysical;
 	}
-	
+
 	@SuppressWarnings("unused")
 	private Object getSwapMemoryStatus(MBeanServer mbeanServer, ObjectName name)
 			throws AttributeNotFoundException, InstanceNotFoundException,
