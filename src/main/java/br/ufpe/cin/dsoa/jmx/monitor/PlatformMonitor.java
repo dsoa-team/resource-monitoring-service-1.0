@@ -1,9 +1,10 @@
 package br.ufpe.cin.dsoa.jmx.monitor;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.UUID;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
@@ -16,6 +17,12 @@ import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
+
+import br.ufpe.cin.dsoa.serializer.JsonSerializer;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 
 public class PlatformMonitor extends NotificationBroadcasterSupport implements
 		PlatformMonitorMBean, Runnable {
@@ -189,8 +196,47 @@ public class PlatformMonitor extends NotificationBroadcasterSupport implements
 				this.sequenceNumber++, message);
 
 		notification.setUserData(status);
+		publishOnAMPQ(status);
 		//TODO: enviar queue status (ou o manager da queue tornar-se listener JMX)
 		super.sendNotification(notification);
+	}
+
+	private void publishOnAMPQ(Map<String, Object> status) {
+		
+		final String queueName = "ResourceStatusEvent";
+
+		try {
+			Connection connection = createConnection();
+			Channel channel = connection.createChannel();
+			channel.queueDeclare(queueName, false, false, false, null);
+
+			Map<String, Object> event = new HashMap<String, Object>();
+			event.put("type", queueName);
+			event.put("metadata_id",  UUID.randomUUID().toString());
+			event.put("metadata_timestamp", System.currentTimeMillis());
+			event.put("metadata_source", "ec2_1");
+			event.put("data_" + SYSTEM_LOAD, status.get(SYSTEM_LOAD));
+			event.put("data_" + FREE_PHYSICAL, status.get(FREE_PHYSICAL));
+			
+			String jsonEvent = JsonSerializer.getInstance().getJson(event);
+			byte[] msg = jsonEvent.getBytes();
+
+			channel.basicPublish("", queueName, null, msg);
+			channel.close();
+			connection.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private Connection createConnection() throws IOException {
+		ConnectionFactory factory = new ConnectionFactory();
+		factory.setHost("localhost");
+		factory.setUsername("admin");
+		factory.setPassword("admin");
+
+		return factory.newConnection();
 	}
 
 }

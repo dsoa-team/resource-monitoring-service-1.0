@@ -1,2 +1,2 @@
-Private-Package: br.ufpe.cin.dsoa.jmx.monitor
+Private-Package: br.ufpe.cin.dsoa.jmx.monitor, br.ufpe.cin.dsoa.serializer
 Bundle-Activator: br.ufpe.cin.dsoa.jmx.monitor.Activator

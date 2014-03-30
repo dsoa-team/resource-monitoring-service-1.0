@@ -1,8 +1,9 @@
 package br.ufpe.cin.dsoa.jmx.monitor;
 
+import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-public class Activator {
+public class Activator implements BundleActivator {
 	private PlatformMonitor platformMonitor;
 
 	public void registerPlatformMBean() {
